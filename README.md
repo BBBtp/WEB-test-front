@@ -1,73 +1,254 @@
-# React + TypeScript + Vite
+# Wells Method - Оценка риска тромбоэмболических осложнений
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение для оценки риска тромбоза глубоких вен (ТГВ) и тромбоэмболии легочной артерии (ТЭЛА) по шкале Уэллса.
 
-Currently, two official plugins are available:
+## 📋 Описание проекта
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Приложение предоставляет интерфейс для просмотра клинических симптомов и факторов риска, используемых при расчете шкалы Уэллса. Пользователи могут ознакомиться с описанием симптомов, их баллами и факторами риска.
 
-## React Compiler
+## 🚀 Быстрый старт
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Требования
 
-## Expanding the ESLint configuration
+- Node.js версии 20.11.1 или выше
+- npm или yarn
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Установка зависимостей
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Запуск в режиме разработки
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+npm run dev
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
+Приложение будет доступно по адресу `http://localhost:5173` (или другому порту, который укажет Vite).
+
+### Сборка для продакшена
+
+```bash
+npm run build
+```
+
+Собранные файлы будут находиться в папке `dist/`.
+
+### Предпросмотр продакшен-сборки
+
+```bash
+npm run preview
+```
+
+## 📁 Структура проекта
+
+```
+web-test-project-front/
+├── public/                 # Статические файлы
+│   └── favicon.svg        # Иконка сайта
+├── src/
+│   ├── api/               # API функции для работы с бэкендом
+│   │   └── symptoms.ts   # Функции для получения симптомов
+│   ├── components/        # Переиспользуемые компоненты
+│   │   ├── Breadcrumbs.tsx    # Навигационная цепочка
+│   │   ├── Breadcrumbs.css
+│   │   ├── Navbar.tsx         # Навигационная панель
+│   │   └── Navbar.css
+│   ├── pages/             # Страницы приложения
+│   │   ├── HomePage.tsx       # Главная страница
+│   │   ├── HomePage.css
+│   │   ├── SymptomsList.tsx   # Список симптомов
+│   │   ├── SymptomsList.css
+│   │   ├── SymptomDetail.tsx  # Детальная страница симптома
+│   │   └── SymptomDetail.css
+│   ├── types/             # TypeScript типы
+│   │   └── index.ts       # Интерфейсы Symptom и SymptomsResponse
+│   ├── App.tsx            # Главный компонент с роутингом
+│   ├── App.css            # Глобальные стили
+│   ├── main.tsx           # Точка входа приложения
+│   └── index.css          # Базовые стили
+├── index.html             # HTML шаблон
+├── vite.config.ts         # Конфигурация Vite
+└── package.json           # Зависимости проекта
+```
+
+## 🧩 Основные компоненты
+
+### API слой (`src/api/symptoms.ts`)
+
+Функции для работы с бэкендом:
+
+- **`getSymptoms(search?, page?)`** - Получение списка симптомов с фильтрацией
+  - Параметры: `search` (поисковый запрос), `page` (номер страницы)
+  - Возвращает: `SymptomsResponse` с массивом симптомов
+  - При недоступности бэкенда использует mock-данные
+
+- **`getSymptomById(id)`** - Получение детальной информации о симптоме
+  - Параметр: `id` (идентификатор симптома)
+  - Возвращает: `Symptom`
+  - При недоступности бэкенда использует mock-данные
+
+**Особенности:**
+- Автоматическая подстановка изображения по умолчанию (SVG placeholder) при пустом `image_url`
+- Fallback на mock-данные при ошибках сети
+- Проксирование запросов через Vite для решения проблем с CORS
+
+### Компоненты
+
+#### Navbar (`src/components/Navbar.tsx`)
+
+Навигационная панель в верхней части страницы:
+- Логотип с иконкой стетоскопа
+- Название приложения "Wells Method"
+- Меню навигации (Главная, Симптомы)
+- Sticky позиционирование (остается видимым при прокрутке)
+
+#### Breadcrumbs (`src/components/Breadcrumbs.tsx`)
+
+Навигационная цепочка для отображения текущего пути:
+- Показывает путь от главной страницы до текущей
+- Активный элемент (последний) не является ссылкой
+- Стилизованные разделители между элементами
+- Hover-эффекты для интерактивности
+
+### Страницы
+
+#### HomePage (`src/pages/HomePage.tsx`)
+
+Главная страница с промо-контентом:
+- **Hero-секция** с градиентным фоном и анимациями
+- **Карточки функций** (3 карточки с иконками)
+- **Информационные блоки** о методе и симптомах
+- **Секция уровней риска** с цветными карточками (низкий/умеренный/высокий)
+- **CTA-секция** с призывом к действию
+
+**Особенности:**
+- Анимации: fadeInUp, pulse, float, bounce, scale
+- Адаптивный дизайн для всех устройств
+
+#### SymptomsList (`src/pages/SymptomsList.tsx`)
+
+Страница списка симптомов:
+- **Поисковая строка** с фильтрацией на бэкенде
+- **Сетка карточек** (3 колонки на десктопе, 2 на планшете, 1 на мобильном)
+- Каждая карточка содержит:
+  - Изображение симптома (или SVG placeholder)
+  - Название симптома
+  - Категорию
+  - Количество баллов
+
+**Особенности:**
+- Фильтрация через параметр `search` в API
+- Обработка ошибок загрузки изображений
+- Плавные hover-эффекты на карточках
+
+#### SymptomDetail (`src/pages/SymptomDetail.tsx`)
+
+Детальная страница симптома:
+- **Изображение симптома** (слева)
+- **Информация о симптоме** (справа):
+  - Название
+  - Категория
+  - Описание
+  - Факторы риска
+  - Баллы по шкале Уэллса
+
+**Особенности:**
+- Адаптивная сетка (2 колонки на десктопе, 1 на мобильном)
+- Обработка ошибок загрузки изображений
+- Breadcrumbs для навигации
+
+## 🎨 Стилизация
+
+### Цветовая схема
+
+Проект использует цветовую палитру WebMD:
+- `--webmd-blue: #005BBB` - основной синий
+- `--webmd-dark-blue: #003D7A` - темно-синий
+- `--webmd-orange: #F57C00` - оранжевый для акцентов
+- `--webmd-green: #5B9F4D` - зеленый для успешных состояний
+
+### Технологии стилизации
+
+- **React-Bootstrap** - для базовых компонентов (Card, Container, Navbar и т.д.)
+- **CSS Modules** - каждый компонент имеет свой CSS файл
+- **CSS Custom Properties** - для переменных цветов и размеров
+- **CSS Grid и Flexbox** - для адаптивной верстки
+
+## 🔌 Интеграция с бэкендом
+
+### API Endpoints
+
+Приложение работает с REST API:
+
+1. **GET `/api/symptoms/`** - Список симптомов
+   - Query параметры:
+     - `search` - поиск по названию
+     - `page` - номер страницы (пагинация)
+   - Ответ: JSON с полями `count`, `next`, `previous`, `results`
+
+2. **GET `/api/symptoms/{id}/`** - Детали симптома
+   - Path параметр: `id` - идентификатор симптома
+   - Ответ: JSON объект симптома
+
+### Проксирование
+
+В `vite.config.ts` настроен прокси для решения проблем с CORS:
+
+```typescript
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8000',
+      changeOrigin: true,
+      secure: false,
     },
   },
-])
+}
 ```
+
+Все запросы к `/api/*` проксируются на `http://localhost:8000`.
+
+### Mock-данные
+
+При недоступности бэкенда приложение автоматически использует встроенные mock-данные с 7 симптомами, включая:
+- Клинические симптомы ТГВ
+- Альтернативный диагноз
+- Иммобилизация или операция
+- Ранее диагностированный ТГВ/ТЭЛА
+- Кровохарканье
+- Тахикардия
+- Злокачественное новообразование
+
+## 🛠 Технологический стек
+
+- **React 19.2.0** - UI библиотека
+- **TypeScript 5.9.3** - типизация
+- **Vite 5.4.0** - сборщик и dev-сервер
+- **React Router DOM 7.10.1** - маршрутизация
+- **React Bootstrap 2.10.10** - UI компоненты
+- **Bootstrap 5.3.8** - CSS фреймворк
+
+## 🎯 Особенности реализации
+
+### Роутинг
+
+Роутинг настроен в `App.tsx`:
+- `/` - главная страница
+- `/symptoms` - список симптомов
+- `/symptoms/:id` - детальная страница симптома
+
+### Обработка изображений
+
+Все изображения обрабатываются с fallback на SVG placeholder:
+- Если `image_url` пустой или не загружается, используется локально генерируемый SVG
+- SVG содержит иконку стетоскопа и текст "Wells Method"
+- Не требует интернет-соединения
+
+### Управление состоянием
+
+Используется локальное состояние через `useState` и `useEffect`:
+
+
+
