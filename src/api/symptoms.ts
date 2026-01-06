@@ -1,4 +1,5 @@
 import { Symptom, SymptomsResponse } from '../types';
+import { API_BASE_URL, isTauri } from '../config/api';
 
 // Mock данные для случая, когда бэкенд недоступен
 const mockSymptoms: Symptom[] = [
@@ -108,7 +109,9 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       params.append('page', page.toString());
     }
 
-    const url = `/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
+    // В Tauri используем полный URL с ZeroTier IP, иначе относительный путь
+    const baseUrl = isTauri ? API_BASE_URL : '';
+    const url = `${baseUrl}/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -155,7 +158,9 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
  */
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
-    const response = await fetch(`/api/symptoms/${id}/`);
+    // В Tauri используем полный URL с ZeroTier IP, иначе относительный путь
+    const baseUrl = isTauri ? API_BASE_URL : '';
+    const response = await fetch(`${baseUrl}/api/symptoms/${id}/`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch symptom');

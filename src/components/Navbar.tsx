@@ -1,8 +1,11 @@
 import { Navbar as BootstrapNavbar, Nav, Container } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
+import { isTauri } from '../config/api';
 import './Navbar.css';
 
 export function Navbar() {
+  const isGuestMode = isTauri;
+
   return (
     <BootstrapNavbar bg="dark" variant="dark" expand="lg" className="custom-navbar" sticky="top">
       <Container fluid className="nav-wrapper">
@@ -26,9 +29,18 @@ export function Navbar() {
             <LinkContainer to="/">
               <Nav.Link>Главная</Nav.Link>
             </LinkContainer>
+            <LinkContainer to="/categories">
+              <Nav.Link>Категории</Nav.Link>
+            </LinkContainer>
             <LinkContainer to="/symptoms">
               <Nav.Link>Симптомы</Nav.Link>
             </LinkContainer>
+            {/* В Tauri режиме скрываем элементы авторизации/редактирования */}
+            {!isGuestMode && (
+              <>
+                {/* Здесь могут быть элементы авторизации/редактирования в будущем */}
+              </>
+            )}
           </Nav>
         </BootstrapNavbar.Collapse>
       </Container>
