@@ -3,6 +3,7 @@
   "short_name": "Wells Method",
   "description": "Оценка риска тромбоэмболических осложнений по шкале Уэллса",
   "start_url": "/WEB-test-front/",
+  "scope": "/WEB-test-front/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#005BBB",
