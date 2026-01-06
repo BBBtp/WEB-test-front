@@ -1,40 +1,36 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Container, Card, Form, Button, Spinner, Offcanvas, Accordion } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { getSymptoms } from '../api/symptoms';
 import { Symptom } from '../types';
 import { RootState } from '../store/store';
-import { setSearchQuery, setCategories } from '../store/filtersSlice';
+import { setSearchQuery } from '../store/filtersSlice';
 import './SymptomsList.css';
 
 export function SymptomsList() {
   const dispatch = useDispatch();
-  const { searchQuery, categories } = useSelector((state: RootState) => state.filters);
+  const { searchQuery } = useSelector((state: RootState) => state.filters);
   const [symptoms, setSymptoms] = useState<Symptom[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  
+  // Синхронизируем локальный input с Redux
+  const [searchInput, setSearchInput] = useState(searchQuery);
+  
+  // Обновляем input при изменении Redux state
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
 
-  // Получаем уникальные категории из симптомов
-  const availableCategories = useMemo(() => {
-    const cats = new Set<string>();
-    symptoms.forEach(symptom => {
-      if (symptom.category) {
-        cats.add(symptom.category);
-      }
-    });
-    return Array.from(cats).sort();
-  }, [symptoms]);
-
+  // Загружаем симптомы при монтировании и при изменении searchQuery
   useEffect(() => {
     let isMounted = true;
     
     const loadData = async () => {
       setLoading(true);
       try {
-        const data = await getSymptoms();
+        const data = await getSymptoms(searchQuery || undefined);
         if (isMounted) {
           setSymptoms(data.results);
         }
@@ -52,48 +48,13 @@ export function SymptomsList() {
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  const loadSymptoms = async (search?: string) => {
-    setLoading(true);
-    try {
-      const data = await getSymptoms(search);
-      let filteredResults = data.results;
-      
-      // Фильтрация по категориям
-      if (categories.length > 0) {
-        filteredResults = filteredResults.filter(symptom => 
-          symptom.category && categories.includes(symptom.category)
-        );
-      }
-      
-      setSymptoms(filteredResults);
-    } catch (error) {
-      console.error('Ошибка загрузки симптомов:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // Сохраняем поисковую строку в Redux
     dispatch(setSearchQuery(searchInput));
-    loadSymptoms(searchInput);
   };
-
-  const handleCategoryToggle = (category: string) => {
-    const newCategories = categories.includes(category)
-      ? categories.filter(c => c !== category)
-      : [...categories, category];
-    dispatch(setCategories(newCategories));
-  };
-
-  // Перезагружаем симптомы при изменении категорий
-  useEffect(() => {
-    if (symptoms.length > 0 || searchQuery) {
-      loadSymptoms(searchQuery);
-    }
-  }, [categories]);
 
   const getPointsLabel = (points: number): string => {
     const lastDigit = points % 10;
@@ -118,96 +79,23 @@ export function SymptomsList() {
         { label: 'Симптомы' }
       ]} />
       <Container className="symptoms-container">
-        {/* Блок поиска и фильтров */}
+        {/* Блок поиска */}
         <div className="search-section">
-          <div className="d-flex gap-2 align-items-center mb-3">
-            <Form onSubmit={handleSearch} className="flex-grow-1">
-              <Form.Group className="d-flex gap-2">
-                <Form.Control
-                  type="text"
-                  placeholder="Поиск симптомов DVT или факторов риска..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="search-input"
-                />
-                <Button type="submit" variant="primary" className="search-btn">
-                  Искать
-                </Button>
-              </Form.Group>
-            </Form>
-            {/* Кнопка фильтров для мобильных */}
-            <Button
-              variant="outline-primary"
-              className="d-lg-none filters-toggle-btn"
-              onClick={() => setShowFilters(true)}
-            >
-              Фильтры
-              {categories.length > 0 && (
-                <span className="badge bg-primary ms-2">{categories.length}</span>
-              )}
-            </Button>
-          </div>
-          
-          {/* Фильтры по категориям - десктоп */}
-          {availableCategories.length > 0 && (
-            <div className="filters-desktop d-none d-lg-block">
-              <div className="filter-label mb-2">Категории:</div>
-              <div className="d-flex flex-wrap gap-2">
-                {availableCategories.map(category => (
-                  <Button
-                    key={category}
-                    variant={categories.includes(category) ? 'primary' : 'outline-primary'}
-                    size="sm"
-                    onClick={() => handleCategoryToggle(category)}
-                  >
-                    {category}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Мобильный drawer для фильтров */}
-        <Offcanvas show={showFilters} onHide={() => setShowFilters(false)} placement="end">
-          <Offcanvas.Header closeButton>
-            <Offcanvas.Title>Фильтры</Offcanvas.Title>
-          </Offcanvas.Header>
-          <Offcanvas.Body>
-            <Accordion defaultActiveKey="0">
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>Категории</Accordion.Header>
-                <Accordion.Body>
-                  {availableCategories.length > 0 ? (
-                    <div className="d-flex flex-column gap-2">
-                      {availableCategories.map(category => (
-                        <Form.Check
-                          key={category}
-                          type="checkbox"
-                          label={category}
-                          checked={categories.includes(category)}
-                          onChange={() => handleCategoryToggle(category)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted">Нет доступных категорий</p>
-                  )}
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-            {categories.length > 0 && (
-              <Button
-                variant="outline-danger"
-                size="sm"
-                className="mt-3"
-                onClick={() => dispatch(setCategories([]))}
-              >
-                Сбросить фильтры
+          <Form onSubmit={handleSearch}>
+            <Form.Group className="d-flex gap-2">
+              <Form.Control
+                type="text"
+                placeholder="Поиск симптомов DVT или факторов риска..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="search-input"
+              />
+              <Button type="submit" variant="primary" className="search-btn">
+                Искать симптомы
               </Button>
-            )}
-          </Offcanvas.Body>
-        </Offcanvas>
+            </Form.Group>
+          </Form>
+        </div>
 
         {/* Список симптомов */}
         {loading ? (

@@ -7,7 +7,9 @@ import App from './App.tsx'
 // Регистрация service worker для PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    // Используем путь с учетом base path для GitHub Pages
+    const swPath = import.meta.env.BASE_URL + 'sw.js';
+    navigator.serviceWorker.register(swPath)
       .then((registration) => {
         console.log('Service Worker зарегистрирован:', registration.scope);
       })
