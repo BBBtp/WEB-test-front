@@ -105,3 +105,67 @@
   text-decoration: none;
 }
 
+/* Адаптивность */
+@media (max-width: 992px) {
+  .custom-navbar .title-group h1 {
+    font-size: 20px;
+  }
+
+  .custom-navbar .title-group .subtitle {
+    font-size: 10px;
+  }
+
+  .custom-navbar .logo-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .custom-navbar .nav-wrapper {
+    padding: 0 10px;
+  }
+
+  .custom-navbar .logo-section {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .custom-navbar .title-group h1 {
+    font-size: 18px;
+  }
+
+  .custom-navbar .title-group .subtitle {
+    font-size: 9px;
+  }
+
+  .custom-navbar .logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .custom-navbar .nav-link {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .custom-navbar .title-group h1 {
+    font-size: 16px;
+  }
+
+  .custom-navbar .title-group .subtitle {
+    display: none;
+  }
+
+  .custom-navbar .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .custom-navbar .logo-icon span {
+    font-size: 20px !important;
+  }
+}
+

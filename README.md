@@ -248,7 +248,53 @@ server: {
 
 ### Управление состоянием
 
-Используется локальное состояние через `useState` и `useEffect`:
+Используется Redux Toolkit для управления состоянием фильтров:
+- `src/store/store.ts` - конфигурация Redux store
+- `src/store/filtersSlice.ts` - slice для фильтров (категории, поиск, параметры)
+- Redux DevTools Extension поддерживается
+
+## 📦 Деплой на GitHub Pages
+
+### Подготовка
+
+1. Установите `gh-pages` как dev-зависимость (уже добавлено в `package.json`):
+```bash
+npm install
+```
+
+2. Убедитесь, что в `vite.config.ts` установлен правильный `base`:
+```typescript
+base: '/WEB-test-front/',
+```
+
+3. Приложение использует `HashRouter` для корректной работы на GitHub Pages.
+
+### Деплой
+
+Выполните команду:
+```bash
+npm run deploy
+```
+
+Эта команда:
+1. Соберет проект (`npm run build`)
+2. Опубликует содержимое папки `dist` в ветку `gh-pages` вашего репозитория
+
+### Настройка GitHub Pages
+
+1. Перейдите в настройки репозитория на GitHub
+2. Откройте раздел "Pages" в меню слева
+3. В разделе "Source" выберите ветку `gh-pages` и папку `/ (root)`
+4. Сохраните изменения
+
+После этого приложение будет доступно по адресу:
+`https://<ваш-username>.github.io/WEB-test-front/`
+
+### Важные замечания
+
+- Используется `HashRouter` вместо `BrowserRouter` для корректной работы роутинга на GitHub Pages
+- Все пути настроены относительно базового пути `/WEB-test-front/`
+- Service Worker и PWA функциональность работают после деплоя
 
 
 
