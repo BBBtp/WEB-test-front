@@ -8,6 +8,9 @@ import fs from 'fs'
 // Проверяем, находимся ли мы в Tauri проекте (есть папка src-tauri)
 const isTauriProject = existsSync(resolve(__dirname, 'src-tauri'))
 
+//TODO: Поменять IP на свой ZeroTier
+const API_BASE_URL = 'https://10.174.203.183:8443'
+
 // https://vite.dev/config/
 export default defineConfig({
   // Для Tauri (dev и production) не нужен base path, для web используем base path
@@ -28,7 +31,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://10.174.203.183:8000',
+        target: API_BASE_URL,
         changeOrigin: true,
         secure: false,
       },
