@@ -169,3 +169,48 @@
   }
 }
 
+/* Мобильное меню (Offcanvas) */
+.mobile-menu-offcanvas {
+  z-index: 1050;
+}
+
+.mobile-nav-menu {
+  gap: 8px;
+  padding: 0;
+}
+
+.mobile-nav-item {
+  padding: 16px 20px !important;
+  margin: 4px 0;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #333 !important;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item:hover {
+  background: #e9ecef;
+  transform: translateX(4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  color: #005BBB !important;
+}
+
+.mobile-nav-item.active {
+  background: #005BBB;
+  color: white !important;
+}
+
+.mobile-nav-item.active:hover {
+  background: #003D7A;
+  color: white !important;
+}
+
+.custom-navbar .nav-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  font-weight: 600;
+}
+

@@ -109,9 +109,26 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       params.append('page', page.toString());
     }
 
-    // В Tauri используем полный URL с ZeroTier IP, иначе относительный путь
-    const baseUrl = isTauri ? API_BASE_URL : '';
+    // В dev режиме (Vite dev server) используем прокси, в production Tauri - прямой URL
+    // Проверяем, запущены ли мы в dev режиме через Vite
+    const isDevMode = import.meta.env.DEV;
+    const isViteDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    // В dev режиме (даже в Tauri) используем прокси Vite, в production Tauri - прямой URL
+    const baseUrl = (isTauri && !isViteDev) ? API_BASE_URL : '';
     const url = `${baseUrl}/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
+    
+    // Логирование для отладки
+    console.log('🔍 API Debug:', {
+      isTauri,
+      isDevMode,
+      isViteDev,
+      baseUrl,
+      fullUrl: url,
+      API_BASE_URL,
+      hostname: window.location.hostname,
+    });
+    
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -126,7 +143,13 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
     }));
     return data;
   } catch (error) {
-    console.warn('Backend недоступен, используем mock данные:', error);
+    console.error('❌ Backend недоступен, используем mock данные:', error);
+    console.error('🔍 Детали ошибки:', {
+      message: error instanceof Error ? error.message : String(error),
+      isTauri,
+      API_BASE_URL,
+      attemptedUrl: `${isTauri ? API_BASE_URL : ''}/api/symptoms/`,
+    });
     // Используем mock данные
     let filteredSymptoms = [...mockSymptoms];
     
@@ -158,8 +181,9 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
  */
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
-    // В Tauri используем полный URL с ZeroTier IP, иначе относительный путь
-    const baseUrl = isTauri ? API_BASE_URL : '';
+    // В dev режиме (Vite dev server) используем прокси, в production Tauri - прямой URL
+    const isViteDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const baseUrl = (isTauri && !isViteDev) ? API_BASE_URL : '';
     const response = await fetch(`${baseUrl}/api/symptoms/${id}/`);
 
     if (!response.ok) {
@@ -173,7 +197,13 @@ export async function getSymptomById(id: number): Promise<Symptom> {
       image_url: data.image_url || defaultImageUrl,
     };
   } catch (error) {
-    console.warn('Backend недоступен, используем mock данные:', error);
+    console.error('❌ Backend недоступен, используем mock данные:', error);
+    console.error('🔍 Детали ошибки:', {
+      message: error instanceof Error ? error.message : String(error),
+      isTauri,
+      API_BASE_URL,
+      attemptedUrl: `${isTauri ? API_BASE_URL : ''}/api/symptoms/${id}/`,
+    });
     // Используем mock данные
     const symptom = mockSymptoms.find(s => s.id === id);
     if (!symptom) {
