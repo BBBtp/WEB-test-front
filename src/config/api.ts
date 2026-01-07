@@ -1,13 +1,11 @@
 // Конфигурация API для Tauri приложения
 // Используется ZeroTier IP адрес вместо localhost
-// ВАЖНО: По требованиям лабораторной работы должен использоваться HTTPS-сервер
 
 // TODO: Замените на реальный IP адрес из вашей ZeroTier сети
-// Для HTTPS используйте порт 443, для HTTP - порт 8000
+// Для build режима используется HTTP (порт 8000)
+// Для dev режима используется HTTPS через прокси Vite
 export const API_BASE_URL = "https://10.174.203.183:8443";
 
-// Проверка, запущено ли приложение в Tauri
-// В dev режиме Tauri может загружаться через localhost, но все равно определяется как Tauri
 export const isTauri = typeof window !== 'undefined' && (
   '__TAURI__' in (window as Window) || 
   (window as any).__TAURI_INTERNALS__ !== undefined ||

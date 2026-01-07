@@ -110,8 +110,8 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
     }
 
     // Определяем режим работы:
-    // - В dev режиме (Vite dev server на localhost:5173) используем прокси через Vite
-    // - В production Tauri build используем прямой URL к API
+    // - В dev режиме (Vite dev server) всегда используем прокси через Vite
+    // - В production Tauri build используем прямой HTTP URL к API (порт 8000)
     const isDevMode = import.meta.env.DEV;
     // В Tauri build режиме window.location.protocol может быть 'tauri:' или 'file:'
     // В dev режиме Tauri загружается через https://localhost:5173 (Vite dev server)
@@ -119,10 +119,9 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
     const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
       && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       && window.location.port === '5173';
-    
-    // В production Tauri build (не Vite dev server) всегда используем API_BASE_URL
-    // В dev режиме (Vite dev server) используем прокси (пустой baseUrl)
-    const baseUrl = (isTauri && !isViteDevServer) ? API_BASE_URL : '';
+
+    // В production Tauri build (не dev режим) используем API_BASE_URL (HTTP)
+    const baseUrl = (isDevMode || isViteDevServer) ? '' : (isTauri ? API_BASE_URL : '');
     const url = `${baseUrl}/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
     
     // Логирование для отладки
@@ -191,11 +190,13 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
  */
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
-
+    // Определяем режим работы (аналогично getSymptoms)
+    const isDevMode = import.meta.env.DEV;
     const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
       && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       && window.location.port === '5173';
-    const baseUrl = (isTauri && !isViteDevServer) ? API_BASE_URL : '';
+    // В dev режиме ВСЕГДА используем прокси, в build режиме Tauri - прямой URL
+    const baseUrl = (isDevMode || isViteDevServer) ? '' : (isTauri ? API_BASE_URL : '');
     const response = await fetch(`${baseUrl}/api/symptoms/${id}/`);
 
     if (!response.ok) {
