@@ -148,7 +148,24 @@ export async function getProfile(): Promise<User> {
  * Обновить профиль пользователя
  */
 export async function updateProfile(userData: Partial<User>): Promise<User> {
-  const response = await axiosInstance.put<User>('/users/profile/update/', userData);
-  return response.data;
+  try {
+    const response = await axiosInstance.put<User>('/users/profile/update/', userData);
+    
+    // Если ответ пустой или не содержит username, возвращаем данные, которые отправили (обогащенные)
+    if (!response.data || !response.data.username) {
+      // Перезагружаем профиль для получения актуальных данных
+      const profile = await getProfile();
+      return profile;
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    // Если ошибка парсинга, но статус 200/204, перезагружаем профиль
+    if (error.response && (error.response.status === 200 || error.response.status === 204)) {
+      const profile = await getProfile();
+      return profile;
+    }
+    throw error;
+  }
 }
 

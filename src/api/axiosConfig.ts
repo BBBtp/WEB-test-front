@@ -73,6 +73,14 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => {
     getCsrfTokenFromResponse(response);
+    
+    // Обрабатываем пустые ответы для PUT/PATCH запросов
+    if ((response.config.method === 'put' || response.config.method === 'patch') && 
+        (response.data === null || response.data === undefined || response.data === '')) {
+      // Если ответ пустой, возвращаем данные из запроса
+      response.data = response.config.data ? (typeof response.config.data === 'string' ? JSON.parse(response.config.data) : response.config.data) : {};
+    }
+    
     return response;
   },
   async (error) => {
@@ -83,6 +91,16 @@ axiosInstance.interceptors.response.use(
         detail: `Ошибка ${error.response.status}: ${error.response.statusText}`,
       };
     }
+    
+    // Обрабатываем ошибки парсинга JSON для PUT/PATCH запросов
+    if (error.message && (error.message.includes('JSON') || error.message.includes('parse'))) {
+      if (error.response && (error.response.status === 200 || error.response.status === 204)) {
+        // Статус успешный, но ошибка парсинга - возвращаем данные из запроса
+        error.response.data = error.config?.data ? (typeof error.config.data === 'string' ? JSON.parse(error.config.data) : error.config.data) : {};
+        return Promise.resolve(error.response);
+      }
+    }
+    
     // Если получили 401, возможно нужно обновить сессию
     if (error.response?.status === 401) {
       // Можно добавить логику для обновления токена или редиректа на логин
