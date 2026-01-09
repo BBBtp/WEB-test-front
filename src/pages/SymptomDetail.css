@@ -57,6 +57,12 @@
   border-bottom: none;
 }
 
+.symptom-action-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
 .description-block h3,
 .risk-factor-block h3,
 .points-block h3 {

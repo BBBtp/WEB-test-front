@@ -94,6 +94,33 @@
   text-decoration: none;
 }
 
+.custom-navbar .nav-link.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Разделитель перед профилем */
+.navbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 12px;
+}
+
+/* Кнопка профиля отдельно */
+.custom-navbar .profile-link {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-left: 8px;
+}
+
+.custom-navbar .profile-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .custom-navbar .navbar-brand {
   color: white !important;
   padding: 0;
@@ -184,6 +211,22 @@
   transform: translateX(2px);
 }
 
+.mobile-nav-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  color: var(--text-secondary);
+}
+
+.mobile-nav-item.text-danger {
+  color: #dc3545 !important;
+}
+
+.mobile-nav-item.text-danger:hover {
+  color: #c82333 !important;
+  background: #fff5f5;
+}
+
 .mobile-nav-icon {
   font-size: 24px;
   width: 30px;
@@ -192,6 +235,20 @@
 
 .mobile-nav-text {
   flex: 1;
+}
+
+/* Разделитель в мобильном меню */
+.mobile-nav-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 8px 0;
+}
+
+/* Кнопка профиля в мобильном меню */
+.profile-mobile-link {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 
 /* Адаптивность */

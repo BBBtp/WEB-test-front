@@ -22,6 +22,19 @@ export default defineConfig({
         target: 'https://localhost:8443',
         changeOrigin: true,
         secure: false,
+        headers: {
+          'Origin': 'https://localhost:8443',
+          'Referer': 'https://localhost:8443',
+        },
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Устанавливаем правильные заголовки для CSRF
+            proxyReq.setHeader('Origin', 'https://localhost:8443');
+            proxyReq.setHeader('Referer', 'https://localhost:8443');
+            proxyReq.setHeader('X-Forwarded-Proto', 'https');
+            proxyReq.setHeader('X-Forwarded-Host', 'localhost:8443');
+          });
+        },
       },
     },
   },

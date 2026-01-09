@@ -1,3 +1,4 @@
+import { axiosInstance } from './axiosConfig';
 import { Symptom, SymptomsResponse } from '../types';
 
 // Mock данные для случая, когда бэкенд недоступен
@@ -100,27 +101,26 @@ const defaultImageUrl = generatePlaceholderImage();
  */
 export async function getSymptoms(search?: string, page?: number): Promise<SymptomsResponse> {
   try {
-    const params = new URLSearchParams();
+    const params: Record<string, string> = {};
     if (search) {
-      params.append('search', search);
+      params.search = search;
     }
     if (page) {
-      params.append('page', page.toString());
+      params.page = page.toString();
     }
 
-    const url = `/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await fetch(url);
+    const response = await axiosInstance.get<SymptomsResponse>('/symptoms/', {
+      params,
+    });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch symptoms');
-    }
-
-    const data: SymptomsResponse = await response.json();
     // Добавляем изображение по умолчанию, если поле пустое
-    data.results = data.results.map(symptom => ({
-      ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
-    }));
+    const data = {
+      ...response.data,
+      results: response.data.results.map(symptom => ({
+        ...symptom,
+        image_url: symptom.image_url || defaultImageUrl,
+      })),
+    };
     return data;
   } catch (error) {
     console.warn('Backend недоступен, используем mock данные:', error);
@@ -155,17 +155,11 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
  */
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
-    const response = await fetch(`/api/symptoms/${id}/`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch symptom');
-    }
-
-    const data: Symptom = await response.json();
+    const response = await axiosInstance.get<Symptom>(`/symptoms/${id}/`);
     // Добавляем изображение по умолчанию, если поле пустое
     return {
-      ...data,
-      image_url: data.image_url || defaultImageUrl,
+      ...response.data,
+      image_url: response.data.image_url || defaultImageUrl,
     };
   } catch (error) {
     console.warn('Backend недоступен, используем mock данные:', error);
@@ -180,4 +174,3 @@ export async function getSymptomById(id: number): Promise<Symptom> {
     };
   }
 }
-
