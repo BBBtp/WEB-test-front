@@ -80,8 +80,8 @@ export function AssessmentsListPage() {
       ]} />
       <Container className="assessments-list-container">
         <div className="assessments-header">
-          <h1>Мои заявки</h1>
-          <p className="text-muted">Список всех заявок на оценку риска ТГВ/ТЭЛА</p>
+          <h1>Мои оценки</h1>
+          <p className="text-muted">Список всех оценок риска ТГВ/ТЭЛА</p>
         </div>
 
         {error && (
