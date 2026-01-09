@@ -64,7 +64,7 @@ export function Navbar() {
 
   const handleDraftClick = () => {
     if (draft) {
-      navigate(`/assessments/${draft.id}`);
+      navigate(`/deep-vein-thrombosis/${draft.id}`);
     }
     handleClose();
   };
@@ -102,7 +102,7 @@ export function Navbar() {
             
             {isAuthenticated ? (
               <>
-                <LinkContainer to="/assessments">
+                <LinkContainer to="/deep-vein-thrombosis">
                   <Nav.Link>Оценки</Nav.Link>
                 </LinkContainer>
                 <div className="navbar-divider"></div>
@@ -163,7 +163,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <Link
-                  to="/assessments"
+                  to="/deep-vein-thrombosis"
                   className="mobile-nav-item"
                   onClick={handleClose}
                 >

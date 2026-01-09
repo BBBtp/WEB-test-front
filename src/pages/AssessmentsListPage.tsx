@@ -166,7 +166,7 @@ export function AssessmentsListPage() {
                             <Button
                               variant="primary"
                               size="sm"
-                              onClick={() => navigate(`/assessments/${assessment.id}`)}
+                              onClick={() => navigate(`/deep-vein-thrombosis/${assessment.id}`)}
                             >
                               Открыть
                             </Button>

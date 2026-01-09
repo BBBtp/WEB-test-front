@@ -54,7 +54,7 @@ function AppContent() {
         }
       />
       <Route
-        path="/assessments"
+        path="/deep-vein-thrombosis"
         element={
           <ProtectedRoute>
             <AssessmentsListPage />
@@ -62,7 +62,7 @@ function AppContent() {
         }
       />
       <Route
-        path="/assessments/:id"
+        path="/deep-vein-thrombosis/:id"
         element={
           <ProtectedRoute>
             <AssessmentDetailPage />

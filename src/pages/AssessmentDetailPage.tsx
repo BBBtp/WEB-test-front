@@ -123,7 +123,7 @@ export function AssessmentDetailPage() {
     if (!id) return;
     try {
       await dispatch(deleteAssessment(Number(id))).unwrap();
-      navigate('/assessments');
+      navigate('/deep-vein-thrombosis');
     } catch (err) {
       console.error('Ошибка удаления заявки:', err);
     }
@@ -236,7 +236,7 @@ export function AssessmentDetailPage() {
     <>
       <Breadcrumbs items={[
         { label: 'Главная', path: '/' },
-        { label: 'Оценки', path: '/assessments' },
+        { label: 'Оценки', path: '/deep-vein-thrombosis' },
         { label: `Оценка №${currentAssessment.id}` }
       ]} />
       <Container className="assessment-detail-container">

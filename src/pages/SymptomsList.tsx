@@ -119,7 +119,7 @@ export function SymptomsList() {
 
     const handleDraftClick = () => {
         if (draft) {
-            navigate(`/assessments/${draft.id}`);
+            navigate(`/deep-vein-thrombosis/${draft.id}`);
         }
     };
 
