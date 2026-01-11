@@ -179,12 +179,19 @@ export const formAssessment = createAsyncThunk(
 // Завершение заявки (модератор)
 export const completeAssessment = createAsyncThunk(
   'assessments/completeAssessment',
-  async (assessmentId: number, { rejectWithValue, dispatch }) => {
+  async (
+    { assessmentId, action }: { assessmentId: number; action: 'complete' | 'reject' },
+    { rejectWithValue, dispatch }
+  ) => {
     try {
-      await api.api.deepVeinThrombosisCompleteUpdate({ assessmentId });
+      // Используем apiAxiosInstance напрямую для отправки body с action
+      const { apiAxiosInstance } = await import('../api/axiosConfig');
+      await apiAxiosInstance.put(`/deep-vein-thrombosis/${assessmentId}/complete/`, {
+        action,
+      });
       // Обновляем заявку после завершения
       await dispatch(getAssessmentDetail(assessmentId));
-      return assessmentId;
+      return { assessmentId, action };
     } catch (error: any) {
       return rejectWithValue(extractErrorMessage(error, 'Ошибка завершения заявки'));
     }

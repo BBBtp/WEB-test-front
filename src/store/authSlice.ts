@@ -1,13 +1,27 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { User } from '../api/auth';
 
-// Загружаем токен из localStorage при инициализации
+// Загружаем токен и is_staff из localStorage при инициализации
 const loadAuthTokenFromStorage = (): string | null => {
   try {
     const authState = localStorage.getItem('authState');
     if (authState) {
       const parsed = JSON.parse(authState);
       return parsed.authToken || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+// Загружаем is_staff из localStorage
+const loadIsStaffFromStorage = (): boolean | null => {
+  try {
+    const authState = localStorage.getItem('authState');
+    if (authState) {
+      const parsed = JSON.parse(authState);
+      return parsed.is_staff !== undefined ? parsed.is_staff : null;
     }
   } catch {
     return null;
@@ -36,8 +50,43 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action: PayloadAction<User | null>) => {
-      state.user = action.payload;
-      state.isAuthenticated = !!action.payload;
+      if (action.payload === null) {
+        state.user = null;
+        state.isAuthenticated = false;
+        // Очищаем is_staff из localStorage
+        try {
+          const authState = localStorage.getItem('authState');
+          if (authState) {
+            const parsed = JSON.parse(authState);
+            delete parsed.is_staff;
+            localStorage.setItem('authState', JSON.stringify(parsed));
+          }
+        } catch {
+          // Игнорируем ошибки
+        }
+      } else {
+        // Сохраняем старое значение is_staff, если новое не пришло
+        const newUser = { ...action.payload };
+        const oldIsStaff = state.user?.is_staff !== undefined ? state.user.is_staff : loadIsStaffFromStorage();
+        if (newUser.is_staff === undefined && oldIsStaff !== null) {
+          newUser.is_staff = oldIsStaff;
+        }
+        
+        // Сохраняем is_staff в localStorage, если оно есть
+        if (newUser.is_staff !== undefined) {
+          try {
+            const authState = localStorage.getItem('authState');
+            const parsed = authState ? JSON.parse(authState) : {};
+            parsed.is_staff = newUser.is_staff;
+            localStorage.setItem('authState', JSON.stringify(parsed));
+          } catch {
+            // Игнорируем ошибки
+          }
+        }
+        
+        state.user = newUser;
+        state.isAuthenticated = true;
+      }
       state.error = null;
     },
     setAuthToken: (state, action: PayloadAction<string | null>) => {

@@ -1,5 +1,4 @@
 import { Api, HttpClient } from './Api';
-import { apiAxiosInstance } from './axiosConfig';
 
 // Создаем HttpClient с правильной конфигурацией для сгенерированного API
 // baseURL пустой, так как пути в сгенерированном API уже содержат /api/

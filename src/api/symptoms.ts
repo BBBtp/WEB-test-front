@@ -174,3 +174,33 @@ export async function getSymptomById(id: number): Promise<Symptom> {
     };
   }
 }
+
+/**
+ * Получить список недавно просмотренных симптомов (для неавторизованных пользователей)
+ */
+export async function getRecentlyViewedSymptoms(): Promise<SymptomsResponse> {
+  try {
+    const response = await axiosInstance.get<SymptomsResponse>('/symptoms/', {
+      params: { recently_viewed: 'true' },
+    });
+
+    // Добавляем изображение по умолчанию, если поле пустое
+    const data = {
+      ...response.data,
+      results: response.data.results.map(symptom => ({
+        ...symptom,
+        image_url: symptom.image_url || defaultImageUrl,
+      })),
+    };
+    return data;
+  } catch (error) {
+    console.error('Ошибка загрузки недавно просмотренных симптомов:', error);
+    // Возвращаем пустой список при ошибке
+    return {
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    };
+  }
+}
