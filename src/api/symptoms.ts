@@ -1,5 +1,5 @@
 import { Symptom, SymptomsResponse } from '../types';
-import { API_BASE_URL, isTauri } from '../config/api';
+import { API_BASE_URL, isTauri, normalizeImageUrl } from '../config/api';
 
 // Mock данные для случая, когда бэкенд недоступен
 const mockSymptoms: Symptom[] = [
@@ -110,24 +110,23 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
     }
 
     // Определяем режим работы:
-    // - В dev режиме (Vite dev server) всегда используем прокси через Vite
-    // - В production Tauri build используем прямой HTTP URL к API (порт 8000)
-    const isDevMode = import.meta.env.DEV;
-    // В Tauri build режиме window.location.protocol может быть 'tauri:' или 'file:'
-    // В dev режиме Tauri загружается через https://localhost:5173 (Vite dev server)
-    // Проверяем, что это именно Vite dev server (порт 5173) или обычный браузер
+    // - В dev режиме (Vite dev server на порту 5173) используем прокси через Vite
+    // - В production Tauri build используем прямой HTTP URL к API
+    // - В обычном браузере (web версия) тоже используем прямой URL
+    
+    // Проверяем, что это именно Vite dev server (порт 5173)
+    // В production билде Tauri протокол будет 'tauri:' или 'file:', а порт пустой
     const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
-      && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      && window.location.port === '5173';
-
-    // В production Tauri build (не dev режим) используем API_BASE_URL (HTTP)
-    const baseUrl = (isDevMode || isViteDevServer) ? '' : (isTauri ? API_BASE_URL : '');
+      && (window.location.port === '5173' || window.location.hostname.includes('5173'));
+    
+    // В Vite dev server используем прокси (относительный путь '/api')
+    // В остальных случаях (Tauri production или web) используем прямой API_BASE_URL
+    const baseUrl = isViteDevServer ? '' : API_BASE_URL;
     const url = `${baseUrl}/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
     
     // Логирование для отладки
     console.log('🔍 API Debug:', {
       isTauri,
-      isDevMode,
       isViteDevServer,
       protocol: window.location.protocol,
       hostname: window.location.hostname,
@@ -138,26 +137,39 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       API_BASE_URL,
     });
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch symptoms');
+      throw new Error(`Failed to fetch symptoms: ${response.status} ${response.statusText}`);
     }
 
     const data: SymptomsResponse = await response.json();
-    // Добавляем изображение по умолчанию, если поле пустое
+    // Нормализуем URL изображений и добавляем изображение по умолчанию, если поле пустое
     data.results = data.results.map(symptom => ({
       ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
+      image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
     }));
     return data;
   } catch (error) {
+    const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+      && (window.location.port === '5173' || window.location.hostname.includes('5173'));
+    const attemptedBaseUrl = isViteDevServer ? '' : API_BASE_URL;
+    const attemptedUrl = `${attemptedBaseUrl}/api/symptoms/`;
+    
     console.error('❌ Backend недоступен, используем mock данные:', error);
     console.error('🔍 Детали ошибки:', {
       message: error instanceof Error ? error.message : String(error),
       isTauri,
+      isViteDevServer,
+      protocol: window.location.protocol,
+      port: window.location.port,
       API_BASE_URL,
-      attemptedUrl: `${isTauri ? API_BASE_URL : ''}/api/symptoms/`,
+      attemptedUrl,
     });
     // Используем mock данные
     let filteredSymptoms = [...mockSymptoms];
@@ -179,7 +191,7 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       previous: null,
       results: filteredSymptoms.map(symptom => ({
         ...symptom,
-        image_url: symptom.image_url || defaultImageUrl,
+        image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
       })),
     };
   }
@@ -191,30 +203,57 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
     // Определяем режим работы (аналогично getSymptoms)
-    const isDevMode = import.meta.env.DEV;
+    // Проверяем, что это именно Vite dev server (порт 5173)
+    // В production билде Tauri протокол будет 'tauri:' или 'file:', а порт пустой
     const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
-      && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-      && window.location.port === '5173';
-    // В dev режиме ВСЕГДА используем прокси, в build режиме Tauri - прямой URL
-    const baseUrl = (isDevMode || isViteDevServer) ? '' : (isTauri ? API_BASE_URL : '');
-    const response = await fetch(`${baseUrl}/api/symptoms/${id}/`);
+      && (window.location.port === '5173' || window.location.hostname.includes('5173'));
+    
+    // В Vite dev server используем прокси (относительный путь '/api')
+    // В остальных случаях (Tauri production или web) используем прямой API_BASE_URL
+    const baseUrl = isViteDevServer ? '' : API_BASE_URL;
+    const url = `${baseUrl}/api/symptoms/${id}/`;
+    
+    console.log('🔍 API Debug (getSymptomById):', {
+      isTauri,
+      isViteDevServer,
+      protocol: window.location.protocol,
+      port: window.location.port,
+      baseUrl,
+      fullUrl: url,
+      API_BASE_URL,
+    });
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch symptom');
+      throw new Error(`Failed to fetch symptom: ${response.status} ${response.statusText}`);
     }
 
     const data: Symptom = await response.json();
     return {
       ...data,
-      image_url: data.image_url || defaultImageUrl,
+      image_url: data.image_url ? normalizeImageUrl(data.image_url) : defaultImageUrl,
     };
   } catch (error) {
+    const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+      && (window.location.port === '5173' || window.location.hostname.includes('5173'));
+    const attemptedBaseUrl = isViteDevServer ? '' : API_BASE_URL;
+    const attemptedUrl = `${attemptedBaseUrl}/api/symptoms/${id}/`;
+    
     console.error('❌ Backend недоступен, используем mock данные:', error);
     console.error('🔍 Детали ошибки:', {
       message: error instanceof Error ? error.message : String(error),
       isTauri,
+      isViteDevServer,
+      protocol: window.location.protocol,
+      port: window.location.port,
       API_BASE_URL,
-      attemptedUrl: `${isTauri ? API_BASE_URL : ''}/api/symptoms/${id}/`,
+      attemptedUrl,
     });
 
     const symptom = mockSymptoms.find(s => s.id === id);
@@ -223,7 +262,7 @@ export async function getSymptomById(id: number): Promise<Symptom> {
     }
     return {
       ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
+      image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
     };
   }
 }

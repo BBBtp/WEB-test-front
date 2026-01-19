@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './pages/HomePage';
 import { SymptomsList } from './pages/SymptomsList';
@@ -8,7 +8,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function App() {
-  // Для Tauri basename не нужен, для web нужен только на GitHub Pages
+  // Для Tauri используем HashRouter (работает с протоколом tauri://)
+  // Для web используем BrowserRouter с basename для GitHub Pages
+  const Router = isTauri ? HashRouter : BrowserRouter;
   const basename = isTauri ? undefined : '/WEB-test-front';
 
   return (
