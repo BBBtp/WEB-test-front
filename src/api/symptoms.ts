@@ -1,4 +1,5 @@
 import { Symptom, SymptomsResponse } from '../types';
+import { API_BASE_URL, normalizeImageUrl } from '../config/api';
 
 // Mock данные для случая, когда бэкенд недоступен
 const mockSymptoms: Symptom[] = [
@@ -108,7 +109,17 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       params.append('page', page.toString());
     }
 
-    const url = `/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
+    // Определяем режим работы:
+    // - В dev режиме (Vite dev server на порту 5173) используем прокси через Vite
+    // - В production (GitHub Pages) используем прямой HTTP URL к API через ZeroTier
+    const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+      && window.location.port === '5173';
+
+    // В Vite dev server используем прокси (относительный путь '/api')
+    // В остальных случаях (GitHub Pages) используем прямой API_BASE_URL
+    const baseUrl = isViteDevServer ? '' : API_BASE_URL;
+    const url = `${baseUrl}/api/symptoms/${params.toString() ? `?${params.toString()}` : ''}`;
+    
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -116,10 +127,10 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
     }
 
     const data: SymptomsResponse = await response.json();
-    // Добавляем изображение по умолчанию, если поле пустое
+    // Нормализуем URL изображений и добавляем изображение по умолчанию, если поле пустое
     data.results = data.results.map(symptom => ({
       ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
+      image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
     }));
     return data;
   } catch (error) {
@@ -144,7 +155,7 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       previous: null,
       results: filteredSymptoms.map(symptom => ({
         ...symptom,
-        image_url: symptom.image_url || defaultImageUrl,
+        image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
       })),
     };
   }
@@ -155,17 +166,23 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
  */
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
-    const response = await fetch(`/api/symptoms/${id}/`);
+    // Определяем режим работы (аналогично getSymptoms)
+    const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+      && window.location.port === '5173';
+
+    // В Vite dev server используем прокси (относительный путь '/api')
+    // В остальных случаях (GitHub Pages) используем прямой API_BASE_URL
+    const baseUrl = isViteDevServer ? '' : API_BASE_URL;
+    const response = await fetch(`${baseUrl}/api/symptoms/${id}/`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch symptom');
     }
 
     const data: Symptom = await response.json();
-    // Добавляем изображение по умолчанию, если поле пустое
     return {
       ...data,
-      image_url: data.image_url || defaultImageUrl,
+      image_url: data.image_url ? normalizeImageUrl(data.image_url) : defaultImageUrl,
     };
   } catch (error) {
     console.warn('Backend недоступен, используем mock данные:', error);
@@ -176,7 +193,7 @@ export async function getSymptomById(id: number): Promise<Symptom> {
     }
     return {
       ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
+      image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
     };
   }
 }
