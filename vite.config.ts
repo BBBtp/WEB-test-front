@@ -4,6 +4,11 @@ import mkcert from 'vite-plugin-mkcert'
 import fs from 'fs'
 import path from 'path'
 
+// TODO: Замените IP адрес на ваш ZeroTier IP
+const ZEROTIER_IP = '10.174.203.183';
+const API_PORT = 8443;
+const IMAGES_PORT = 9000;
+
 // https://vite.dev/config/
 export default defineConfig({
   base: '/WEB-test-front/',
@@ -19,22 +24,15 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://localhost:8443',
+        target: `https://${ZEROTIER_IP}:${API_PORT}`,
         changeOrigin: true,
         secure: false,
-        headers: {
-          'Origin': 'https://localhost:8443',
-          'Referer': 'https://localhost:8443',
-        },
-        configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            // Устанавливаем правильные заголовки для CSRF
-            proxyReq.setHeader('Origin', 'https://localhost:8443');
-            proxyReq.setHeader('Referer', 'https://localhost:8443');
-            proxyReq.setHeader('X-Forwarded-Proto', 'https');
-            proxyReq.setHeader('X-Forwarded-Host', 'localhost:8443');
-          });
-        },
+      },
+      '/images': {
+        target: `http://${ZEROTIER_IP}:${IMAGES_PORT}`,
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/images/, ''),
       },
     },
   },
