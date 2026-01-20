@@ -9,7 +9,7 @@ import fs from 'fs'
 const isTauriProject = existsSync(resolve(__dirname, 'src-tauri'))
 
 //TODO: Поменять IP на свой ZeroTier
-const API_BASE_URL = 'http://10.174.203.183:8000'
+const API_BASE_URL = 'https://10.174.203.183:8443'
 
 // https://vite.dev/config/
 export default defineConfig({
