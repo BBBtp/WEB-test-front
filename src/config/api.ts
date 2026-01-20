@@ -2,9 +2,9 @@
 // Используется ZeroTier IP адрес вместо localhost
 
 // TODO: Замените на реальный IP адрес из вашей ZeroTier сети
-// Для build режима используется HTTP (порт 8000)
+// Бэкенд работает на HTTPS (порт 8443)
 // Для dev режима используется HTTPS через прокси Vite
-export const API_BASE_URL = "http://10.174.203.183:8000";
+export const API_BASE_URL = "https://10.174.203.183:8443";
 
 // Базовый URL для изображений (порт 9000)
 export const IMAGES_BASE_URL = "http://10.174.203.183:9000";
@@ -58,10 +58,19 @@ export function getApiBaseUrl(): string {
 
 /**
  * Получить базовый URL для изображений
+ * - В dev режиме (Vite) - /images (используется прокси)
  * - На GitHub Pages - используем localhost:9000
  * - В остальных случаях - IMAGES_BASE_URL
  */
 export function getImagesBaseUrl(): string {
+  // Dev режим - используем прокси через Vite
+  const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+    && window.location.port === '5173';
+  
+  if (isViteDevServer) {
+    return '/images'; // Относительный путь через прокси Vite
+  }
+  
   if (isGitHubPages) {
     return 'http://localhost:9000'; // Используем localhost для GitHub Pages
   }
@@ -84,11 +93,24 @@ export function normalizeImageUrl(imageUrl: string | null | undefined): string {
   }
 
   const imagesBaseUrl = getImagesBaseUrl();
+  const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
+    && window.location.port === '5173';
 
-  // Если это уже полный URL с правильным адресом, возвращаем как есть
-  if (imageUrl.startsWith(imagesBaseUrl) || 
-      imageUrl.startsWith('http://10.174.203.183:9000') ||
-      imageUrl.startsWith('http://localhost:9000')) {
+  // Если это полный URL с адресом сервера изображений, извлекаем путь
+  if (imageUrl.startsWith('http://10.174.203.183:9000') || 
+      imageUrl.startsWith('http://localhost:9000') ||
+      imageUrl.startsWith('https://10.174.203.183:9000')) {
+    // В dev режиме преобразуем в относительный путь через прокси
+    if (isViteDevServer) {
+      const url = new URL(imageUrl);
+      return `/images${url.pathname}${url.search}`;
+    }
+    // В production возвращаем как есть
+    return imageUrl;
+  }
+
+  // Если это уже относительный путь через прокси, возвращаем как есть
+  if (isViteDevServer && imageUrl.startsWith('/images')) {
     return imageUrl;
   }
 
@@ -99,6 +121,13 @@ export function normalizeImageUrl(imageUrl: string | null | undefined): string {
 
   // Если это localhost, заменяем на правильный адрес
   if (imageUrl.includes('localhost:9000') || imageUrl.includes('127.0.0.1:9000')) {
+    if (isViteDevServer) {
+      // Извлекаем путь из URL
+      const match = imageUrl.match(/https?:\/\/[^\/]+(\/.*)/);
+      if (match) {
+        return `/images${match[1]}`;
+      }
+    }
     return imageUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):9000/, imagesBaseUrl);
   }
 

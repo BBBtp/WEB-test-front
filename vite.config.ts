@@ -19,9 +19,15 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'https://localhost:8443',
+        target: 'https://10.174.203.183:8443',
         changeOrigin: true,
         secure: false,
+      },
+      '/images': {
+        target: 'http://10.174.203.183:9000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/images/, ''),
       },
     },
   },
