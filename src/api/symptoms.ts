@@ -1,5 +1,6 @@
 import { axiosInstance } from './axiosConfig';
 import { Symptom, SymptomsResponse } from '../types';
+import { normalizeImageUrl } from '../config/api';
 
 // Mock данные для случая, когда бэкенд недоступен
 const mockSymptoms: Symptom[] = [
@@ -113,12 +114,12 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       params,
     });
 
-    // Добавляем изображение по умолчанию, если поле пустое
+    // Нормализуем URL изображений и добавляем изображение по умолчанию, если поле пустое
     const data = {
       ...response.data,
       results: response.data.results.map(symptom => ({
         ...symptom,
-        image_url: symptom.image_url || defaultImageUrl,
+        image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
       })),
     };
     return data;
@@ -144,7 +145,7 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
       previous: null,
       results: filteredSymptoms.map(symptom => ({
         ...symptom,
-        image_url: symptom.image_url || defaultImageUrl,
+        image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
       })),
     };
   }
@@ -156,10 +157,10 @@ export async function getSymptoms(search?: string, page?: number): Promise<Sympt
 export async function getSymptomById(id: number): Promise<Symptom> {
   try {
     const response = await axiosInstance.get<Symptom>(`/symptoms/${id}/`);
-    // Добавляем изображение по умолчанию, если поле пустое
+    // Нормализуем URL изображения и добавляем изображение по умолчанию, если поле пустое
     return {
       ...response.data,
-      image_url: response.data.image_url || defaultImageUrl,
+      image_url: response.data.image_url ? normalizeImageUrl(response.data.image_url) : defaultImageUrl,
     };
   } catch (error) {
     console.warn('Backend недоступен, используем mock данные:', error);
@@ -170,7 +171,7 @@ export async function getSymptomById(id: number): Promise<Symptom> {
     }
     return {
       ...symptom,
-      image_url: symptom.image_url || defaultImageUrl,
+      image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
     };
   }
 }
@@ -184,12 +185,12 @@ export async function getRecentlyViewedSymptoms(): Promise<SymptomsResponse> {
       params: { recently_viewed: 'true' },
     });
 
-    // Добавляем изображение по умолчанию, если поле пустое
+    // Нормализуем URL изображений и добавляем изображение по умолчанию, если поле пустое
     const data = {
       ...response.data,
       results: response.data.results.map(symptom => ({
         ...symptom,
-        image_url: symptom.image_url || defaultImageUrl,
+        image_url: symptom.image_url ? normalizeImageUrl(symptom.image_url) : defaultImageUrl,
       })),
     };
     return data;
