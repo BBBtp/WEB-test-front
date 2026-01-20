@@ -82,43 +82,64 @@ export function normalizeImageUrl(imageUrl: string | null | undefined): string {
     return imageUrl;
   }
 
-  const imagesBaseUrl = getImagesBaseUrl();
   const isViteDevServer = (window.location.protocol === 'https:' || window.location.protocol === 'http:') 
     && window.location.port === '5173';
 
-  // Если это полный URL с адресом сервера изображений, извлекаем путь
-  if (imageUrl.startsWith(`http://${ZEROTIER_IP}:${IMAGES_PORT}`) || 
-      imageUrl.startsWith('http://localhost:9000') ||
-      imageUrl.startsWith(`https://${ZEROTIER_IP}:${IMAGES_PORT}`)) {
-    // В dev режиме преобразуем в относительный путь через прокси
-    if (isViteDevServer) {
-      const url = new URL(imageUrl);
-      return `/images${url.pathname}${url.search}`;
+  // В dev режиме: преобразуем все URL сервера изображений в прокси /images
+  if (isViteDevServer) {
+    // Если это уже относительный путь через прокси, возвращаем как есть
+    if (imageUrl.startsWith('/images')) {
+      return imageUrl;
     }
-    // В production возвращаем как есть
+
+    // Проверяем все варианты URL сервера изображений
+    const imageServerPatterns = [
+      `http://localhost:${IMAGES_PORT}`,
+      `https://localhost:${IMAGES_PORT}`,
+      `http://127.0.0.1:${IMAGES_PORT}`,
+      `https://127.0.0.1:${IMAGES_PORT}`,
+      `http://${ZEROTIER_IP}:${IMAGES_PORT}`,
+      `https://${ZEROTIER_IP}:${IMAGES_PORT}`,
+    ];
+
+    for (const pattern of imageServerPatterns) {
+      if (imageUrl.startsWith(pattern)) {
+        try {
+          const url = new URL(imageUrl);
+          return `/images${url.pathname}${url.search || ''}${url.hash || ''}`;
+        } catch (e) {
+          // Если не удалось распарсить URL, извлекаем путь вручную
+          const pathMatch = imageUrl.match(/https?:\/\/[^\/]+(\/.*)/);
+          if (pathMatch) {
+            return `/images${pathMatch[1]}`;
+          }
+        }
+      }
+    }
+
+    // Если это относительный путь (начинается с /), добавляем префикс /images
+    if (imageUrl.startsWith('/')) {
+      return `/images${imageUrl}`;
+    }
+  }
+
+  // Для production или других режимов
+  const imagesBaseUrl = getImagesBaseUrl();
+
+  // Если это полный URL с адресом сервера изображений
+  if (imageUrl.startsWith(`http://${ZEROTIER_IP}:${IMAGES_PORT}`) || 
+      imageUrl.startsWith(`https://${ZEROTIER_IP}:${IMAGES_PORT}`)) {
     return imageUrl;
   }
 
-  // Если это уже относительный путь через прокси, возвращаем как есть
-  if (isViteDevServer && imageUrl.startsWith('/images')) {
-    return imageUrl;
+  // Если это localhost, заменяем на правильный адрес
+  if (imageUrl.includes('localhost:9000') || imageUrl.includes('127.0.0.1:9000')) {
+    return imageUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):9000/, imagesBaseUrl);
   }
 
   // Если это относительный путь, добавляем базовый URL
   if (imageUrl.startsWith('/')) {
     return `${imagesBaseUrl}${imageUrl}`;
-  }
-
-  // Если это localhost, заменяем на правильный адрес
-  if (imageUrl.includes('localhost:9000') || imageUrl.includes('127.0.0.1:9000')) {
-    if (isViteDevServer) {
-      // Извлекаем путь из URL
-      const match = imageUrl.match(/https?:\/\/[^\/]+(\/.*)/);
-      if (match) {
-        return `/images${match[1]}`;
-      }
-    }
-    return imageUrl.replace(/https?:\/\/(localhost|127\.0\.0\.1):9000/, imagesBaseUrl);
   }
 
   // Если это полный URL с другим хостом, возвращаем как есть

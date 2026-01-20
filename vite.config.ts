@@ -9,7 +9,6 @@ const ZEROTIER_IP = '10.174.203.183';
 const API_PORT = 8443;
 const IMAGES_PORT = 9000;
 
-// https://vite.dev/config/
 export default defineConfig({
   base: '/WEB-test-front/',
   plugins: [react(), mkcert()],
@@ -27,6 +26,17 @@ export default defineConfig({
         target: `https://${ZEROTIER_IP}:${API_PORT}`,
         changeOrigin: true,
         secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            proxyReq.setHeader('Origin', `https://${ZEROTIER_IP}:${API_PORT}`);
+            proxyReq.setHeader('X-Forwarded-Proto', 'https');
+            proxyReq.setHeader('X-Forwarded-Host', `${ZEROTIER_IP}:${API_PORT}`);
+            // Передаем оригинальный Referer для отладки
+            if (req.headers.referer) {
+              proxyReq.setHeader('Referer', req.headers.referer);
+            }
+          });
+        },
       },
       '/images': {
         target: `http://${ZEROTIER_IP}:${IMAGES_PORT}`,
