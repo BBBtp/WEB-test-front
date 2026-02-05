@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 
 // TODO: Замените IP адрес на ваш ZeroTier IP
-const ZEROTIER_IP = '10.174.203.183';
+const ZEROTIER_IP = 'localhost';
 const API_PORT = 8443;
 const IMAGES_PORT = 9000;
 
